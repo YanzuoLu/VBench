@@ -21,7 +21,7 @@ from vbench2.third_party.ViTDetector.models import build_model
 from torch.nn.parallel import DataParallel
 import math
 from torchvision import datasets, transforms
-from timm.data.transforms import _pil_interp
+from timm.data.transforms import str_to_pil_interp
 from collections import defaultdict
 from typing import List, Dict
  
