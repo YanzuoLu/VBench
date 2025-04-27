@@ -356,9 +356,10 @@ def init_submodules(dimension_list, local=False, read_frame=False):
                     print(f"An error occurred: {e}")
         
         elif dimension == 'Human_Anatomy':
-            default_config = 'vbench2/third_party/ViTDetector/simmim_finetune__vit_base__img224__800ep.yaml'
+            CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+            default_config = f'{CUR_DIR}/third_party/ViTDetector/simmim_finetune__vit_base__img224__800ep.yaml'
             submodules_dict[dimension] = {
-                "detector_config": "vbench2/third_party/YOLO-World/yolo_world_v2_xl_vlpan_bn_2e-3_100e_4x8gpus_obj365v1_goldg_train_lvis_minival.py",
+                "detector_config": f"{CUR_DIR}/third_party/YOLO-World/yolo_world_v2_xl_vlpan_bn_2e-3_100e_4x8gpus_obj365v1_goldg_train_lvis_minival.py",
                 "detector_weights":f'{CACHE_DIR}/YOLO-World/yolo_world_v2_xl_obj365v1_goldg_cc3mlite_pretrain-5daf1395.pth',
                 "analyzer_configs": {
                     "human": {"cfg_path": default_config, "weight_path": f"{CACHE_DIR}/anomaly_detector/human.pth", "threshold": 0.4545454545454546},
