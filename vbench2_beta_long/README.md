@@ -1,6 +1,6 @@
-# VBench-Long (Beta Version, May 2024)
+# VBench-Long (part of VBench++)
 
-VBench now supports evaluating **long** video generative models.
+VBench++ now supports evaluating **long** video generative models.
 
 ## 1. Video Splitting
 We split the long video into video clips in two steps
@@ -103,7 +103,7 @@ sh scripts/evaluate_OpenSoraPlan.sh
 
 ## :black_nib: Citation
 
-   If you find VBench-Long useful for your work, please consider citing our paper and repo:
+   If you find VBench-Long (a component of VBench++) useful in your work, please consider citing the following papers:
 
    ```bibtex
     @InProceedings{huang2023vbench,
@@ -113,21 +113,13 @@ sh scripts/evaluate_OpenSoraPlan.sh
         year={2024}
     }
 
-    @article{huang2024vbench++,
-        title={VBench++: Comprehensive and Versatile Benchmark Suite for Video Generative Models},
+    @article{huang2025vbench++,
+        title={{VBench++}: Comprehensive and Versatile Benchmark Suite for Video Generative Models},
         author={Huang, Ziqi and Zhang, Fan and Xu, Xiaojie and He, Yinan and Yu, Jiashuo and Dong, Ziyue and Ma, Qianli and Chanpaisit, Nattapol and Si, Chenyang and Jiang, Yuming and Wang, Yaohui and Chen, Xinyuan and Chen, Ying-Cong and Wang, Limin and Lin, Dahua and Qiao, Yu and Liu, Ziwei},
-        journal={arXiv preprint arXiv:2411.13503},
-        year={2024}
+        journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
+        year={2025},
+        doi={10.1109/TPAMI.2025.3633890}
     }
-
-    @article{huang2023vbenchgithub,
-        author = {VBench Contributors},
-        title = {VBench},
-        year = {2023},
-        publisher = {GitHub},
-        journal = {GitHub repository},
-        howpublished = {\url{https://github.com/Vchitect/VBench}},
-    }    
    ```
 
 

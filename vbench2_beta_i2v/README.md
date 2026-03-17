@@ -1,6 +1,6 @@
-# VBench-I2V (Beta Version, Mar 2024)
+# VBench-I2V (part of VBench++)
 
-VBench now supports evaluating Image-to-Video (I2V) generation models.
+VBench++ now supports evaluating Image-to-Video (I2V) generation models.
 
 ## 1. :fire: Highlights 
 - 🖼️ Image Suite: multi-scale, multi-aspect-ratio, comprehensive content variety
@@ -318,6 +318,28 @@ To prepare the sampled videos for evaluation:
     | `imaging_quality` | Yes | Yes | 355 |
 
 
+#### What are the Details of the Video Generation Models?
+We list the setting for sampling videos from these models.
+| Model | Evaluation Party | Release Time | Resolution | FPS | Frame Count | Video Length | Checkpoint | Code Commit ID | Video Format | Sampled Videos (Dimension) | Sampled Videos (Category) |                             Other Settings       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                        |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |------------------------------|
+| [`HunYuan-Video`](https://video.hunyuan.tencent.com/) | VBench Team | 2025-04-14 | 1280x720 | 24 | 120 | 5s | [-](https://github.com/Tencent-Hunyuan/HunyuanVideo-I2V#%EF%B8%8F-dependencies-and-installation) | [-](https://github.com/Tencent-Hunyuan/HunyuanVideo-I2V) | MP4 | [Google Drive](https://drive.google.com/drive/folders/1W02wg6_p-v5BB3jwYbfAKSgoJyXyFIEK) | - | |
+| [`CogVideoX-5b-I2V`](https://github.com/zai-org/CogVideo) | VBench Team | 2025-03-31 | 720x480 | 8 | 49 | 6s | [-](https://github.com/zai-org/CogVideo#model-introduction) | [-](https://github.com/zai-org/CogVideo) | MP4 | [Google Drive](https://drive.google.com/drive/u/0/folders/11Nd1gaEM7eIaDwWAhKv8nfIAAUFFCivS) | - | |
+| [`CogVideoX1.5-5B-I2V`](https://github.com/zai-org/CogVideo) | VBench Team | 2025-03-31 | 1360x768 | 16 | 81 | 5s | [-](https://github.com/zai-org/CogVideo#model-introduction) | [-](https://github.com/zai-org/CogVideo) | MP4 | [Google Drive](https://drive.google.com/drive/u/0/folders/1fGyVyqxKdKSD6zjOFEWWt4fZrOA4oYIH) | - | |
+| [`Gen-4-I2V`](https://app.runwayml.com/login) | VBench Team | 2025-05-20 | 1280x720 | 24 | 240 | 10s | - | - | MP4 | [Google Drive](https://drive.google.com/drive/u/0/folders/1JpSUBvWhL7sZW96PxH8ayb252ohgJdPL) | - | |
+| [`WAN2.1-I2V-14B`](https://github.com/Wan-Video/Wan2.1) | VBench Team | 2025-05-08 | 1280x720 | 16 | 81 | 5s | [link](https://huggingface.co/Wan-AI/Wan2.1-I2V-14B-720P) | [](https://github.com/Wan-Video/Wan2.1) | MP4 | [Google Drive](https://drive.google.com/drive/u/0/folders/1PEsSdFdqGUkbdT4UHz-n0_PjRQwbTw8g) | - | |
+| [`I2VGen-XL`](https://github.com/dailingx/i2vgen-xl) | VBench Team | 2024-07-22 | 1280×720 | 7 | 16 | 2s | - | - | MP4 | [Google Drive](https://drive.google.com/drive/u/0/folders/1t-Q7G2z99g6eJRp4tQf1IaTy-8Muqfkd) | - | |
+| [`VideoCrafter-I2V`](https://github.com/AILab-CVC/VideoCrafter) | VBench Team | 2024-07-22 | 640x1024 | 16 | 32 | 2s | [-](https://github.com/AILab-CVC/VideoCrafter#-models) | [-](https://github.com/AILab-CVC/VideoCrafter/tree/main) | MP4 | [Google Drive](https://drive.google.com/file/d/11cgACr--DfOvEo-tFmOLWzLAnf3TC3bz/view?usp=drive_link) | - | |
+| `Animate-Anything` | VBench Team | 2024-07-22 | 512x512 | 8 | 16 | 2s | - | - | MP4 | [Google Drive](https://drive.google.com/file/d/1uFteS9Aq4kiNhFYeo7Ox1zEKXy_J4bvF/view?usp=drive_link) | - | |
+| [`ConsistI2V`](https://github.com/TIGER-AI-Lab/ConsistI2V) | VBench Team | 2024-07-22 | 256x256 | 8 | 16 | 2s | - | - | MP4 | [Google Drive](https://drive.google.com/file/d/1xAZLefw42_cZPu5lOTt-VkV5B93szmDs/view?usp=drive_link) | - | |
+| [`SEINE-512x320`](https://github.com/Vchitect/SEINE) | VBench Team | 2024-07-22 | 512x320 | 8 | 16 | 2s | - | - | MP4 | [Google Drive](https://drive.google.com/file/d/1W-WTnYZXlwHWdYx_4m3qxmU20uHDQExG/view?usp=drive_link) | - | |
+| [`DynamiCrafter`](https://github.com/Doubiiu/DynamiCrafter) | VBench Team | 2024-07-22 | 576x1024 | 8 | 16 | 2s | - | - | MP4 | [Google Drive](https://drive.google.com/drive/u/0/folders/1VPbIoXHNYBxUjq5D53VpulrxA0adNADW) | - | |
+| [`ToMovie 2.0`](https://www.tomoviee.ai/) | VBench Team | 2025-09-08 | 720x1280 | 24 | 120 | 5s | - | - | MP4 | [Google Drive](https://drive.google.com/drive/folders/1BBlqlfgztFBtwnUZ555HRL2ay6t5T0ds) | - | |
+| [`LTX-2-I2V (w/o prompt-optimized)`](https://github.com/Lightricks/LTX-2/tree/main) | VBench Team | 2026-02-06 | 1536x1024 | 24 | 120 | 5.0s | [LTX-2](https://huggingface.co/Lightricks/LTX-2/blob/main/ltx-2-19b-dev.safetensors) | [Commit ID](https://github.com/Lightricks/LTX-2/tree/4f410820b198e05074a1e92de793e3b59e9ab5a0) | MP4 | [Google Drive](https://drive.google.com/drive/u/0/folders/1Kd5piR4qf6GTv4cXuQUNIAvYWub7b37x) | - | Videos sampled using [TI2VidTwoStagesPipeline](https://github.com/Lightricks/LTX-2/blob/4f410820b198e05074a1e92de793e3b59e9ab5a0/packages/ltx-pipelines/src/ltx_pipelines/ti2vid_two_stages.py) and [ltx-2-19b-dev.safetensors](https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-dev.safetensors) checkpoint |
+| [`Wan2.2-I2V-A14B (w/o prompt-optimized)`](https://github.com/Wan-Video/Wan2.2) | VBench Team | 2026-02-07 | 832x480 | 16 | 81 | 5.1s | [Wan2.2-I2V-A14B](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B) | [Commit ID](https://github.com/Wan-Video/Wan2.2/tree/81e67351b81197330c9533e7f345233e7702b44a) | MP4 | [Google Drive](https://drive.google.com/drive/u/0/folders/1fMNra2Daf9se3VBtSEH6YG6HqBWdGKH-) | - | |
+| [`Wan2.2-TI2V-5B (Qwen prompt-optimized)`](https://github.com/Wan-Video/Wan2.2) | VBench Team | 2026-02-12 | 1280x720 | 16 | 81 | 5.1s | [Wan2.2-TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B) | [Commit ID](https://github.com/Wan-Video/Wan2.2/tree/81e67351b81197330c9533e7f345233e7702b44a) | MP4 | [Google Drive](https://drive.google.com/drive/u/0/folders/1iiBmYK58ZUSbSpQ6OL3gMunHUc2TUU53) | - | |
+| [`Wan2.2-I2V-A14B (Qwen prompt-optimized)`](https://github.com/Wan-Video/Wan2.2) | VBench Team | 2026-03-06 | 832x480 | 16 | 81 | 5.1s | [Wan2.2-I2V-A14B](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B) | [Commit ID](https://github.com/Wan-Video/Wan2.2/tree/81e67351b81197330c9533e7f345233e7702b44a) | MP4 | [Google Drive](https://drive.google.com/drive/folders/1mw-4sO9hHRKlhVCLu5wIpoeERIqtEIZ0) | - | |
+
+
 ## 5. Evaluation
 
 We have introduced three new dimensions for the image-to-video task, namely: `i2v_subject`, `i2v_background`, and `camera_motion`. 
@@ -456,7 +478,7 @@ The minimum and maximum values used for normalization in each dimension, as well
 
 ## :black_nib: Citation
 
-   If you find VBench-I2V useful for your work, please consider citing our paper and repo:
+   If you find VBench-I2V (a component of VBench++) useful in your work, please consider citing the following papers:
 
    ```bibtex
     @InProceedings{huang2023vbench,
@@ -466,12 +488,13 @@ The minimum and maximum values used for normalization in each dimension, as well
         year={2024}
     }
 
-    @article{huang2024vbench++,
-        title={VBench++: Comprehensive and Versatile Benchmark Suite for Video Generative Models},
+    @article{huang2025vbench++,
+        title={{VBench++}: Comprehensive and Versatile Benchmark Suite for Video Generative Models},
         author={Huang, Ziqi and Zhang, Fan and Xu, Xiaojie and He, Yinan and Yu, Jiashuo and Dong, Ziyue and Ma, Qianli and Chanpaisit, Nattapol and Si, Chenyang and Jiang, Yuming and Wang, Yaohui and Chen, Xinyuan and Chen, Ying-Cong and Wang, Limin and Lin, Dahua and Qiao, Yu and Liu, Ziwei},
-        journal={arXiv preprint arXiv:2411.13503},
-        year={2024}
-    }   
+        journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
+        year={2025},
+        doi={10.1109/TPAMI.2025.3633890}
+    }
    ```
 
 
