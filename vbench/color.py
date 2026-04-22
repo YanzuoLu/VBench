@@ -61,7 +61,6 @@ def color(model, video_dict, device):
     for info in tqdm(video_dict, disable=get_rank() > 0):
         if 'auxiliary_info' not in info:
             raise "Auxiliary info is not in json, please check your json."
-        # print(info)
         color_info = info['auxiliary_info']['color']
         object_info = info['prompt']
         object_info = object_info.replace('a ','').replace('an ','').replace(color_info,'').strip()
@@ -83,12 +82,15 @@ def color(model, video_dict, device):
                 success_frame_count_all += cur_success_frame_rate
                 video_count += 1
                 video_results.append({
-                    'video_path': video_path, 
+                    'video_path': video_path,
                     'video_results': cur_success_frame_rate,
                     'cur_success_frame_rate': cur_success_frame_rate,})
+    if video_count == 0:
+        logger.warning("Color evaluation found no valid videos after detection. Returning 0.0.")
+        return 0.0, video_results
     success_rate = success_frame_count_all / video_count
     return success_rate, video_results
-        
+
 
 def compute_color(json_dir, device, submodules_dict, **kwargs):
     dense_caption_model = DenseCaptioning(device)
@@ -101,5 +103,9 @@ def compute_color(json_dir, device, submodules_dict, **kwargs):
         video_results = gather_list_of_dict(video_results)
         success_frame_count = sum([x['cur_success_frame_rate'] for x in video_results])
         frame_count = len(video_results)
-        all_results = success_frame_count / frame_count
+        if frame_count == 0:
+            logger.warning("Color evaluation gathered no valid videos across all ranks. Returning 0.0.")
+            all_results = 0.0
+        else:
+            all_results = success_frame_count / frame_count
     return all_results, video_results
