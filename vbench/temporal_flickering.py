@@ -69,7 +69,7 @@ def compute_temporal_flickering(json_dir, device, submodules_list, **kwargs):
     all_results, video_results = temporal_flickering(video_list)
     if get_world_size() > 1:
         video_results = gather_list_of_dict(video_results)
-        all_results = sum([d['video_results'] for d in video_results]) / len(video_results)
+        all_results = sum([d['video_results'] for d in video_results]) / len(video_results) if len(video_results) > 0 else 0.0
     return all_results, video_results
 
 
