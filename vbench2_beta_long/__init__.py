@@ -4,6 +4,7 @@ import importlib
 from itertools import chain
 from pathlib import Path
 from vbench.utils import get_prompt_from_filename, init_submodules, save_json, load_json
+from vbench.distributed import get_rank, all_gather, barrier, distribute_list_to_rank
 from vbench2_beta_long.utils import split_video_into_scenes, split_video_into_clips, load_clip_lengths, get_duration_from_json
 from vbench2_beta_long.temporal_flickering import filter_static_clips
 from vbench import VBench
@@ -29,16 +30,22 @@ class VBenchLong(VBench):
             # Check if the number of folders matches the number of .mp4 files
             if split_clip_folders_count == mp4_files_count:
                 print(f"Videos have been splitted into clips in {videos_path}/split_clip")
-                return 
+                barrier()
+                return
+
+        # Shard source videos across ranks so each rank splits its own subset.
+        rank_video_files = sorted(
+            video_file for video_file in os.listdir(videos_path)
+            if video_file.endswith(('.mp4', '.avi', '.mov'))
+        )
+        rank_video_files = distribute_list_to_rank(rank_video_files)
 
         # detect transistions
         split_scene_video_path = []
         if kwargs['use_semantic_splitting']:
-            for video_file in os.listdir(videos_path):
+            for video_file in rank_video_files:
                 video_path = os.path.join(videos_path, video_file)
-                if not video_path.endswith(('.mp4', '.avi', '.mov')):
-                    continue
-                
+
                 # semantically consistent scenes splitting
                 video_name = os.path.splitext(video_file)[0]
                 output_dir = os.path.join(videos_path, "split_scene", video_name)
@@ -55,11 +62,8 @@ class VBenchLong(VBench):
         base_output_dir = os.path.join(videos_path, "split_clip")
         os.makedirs(base_output_dir, exist_ok=True)
 
-        for video_file in os.listdir(videos_path):
+        for video_file in rank_video_files:
             video_path = os.path.join(videos_path, video_file)
-
-            if not video_path.endswith(('.mp4', '.avi', '.mov')):
-                continue
 
             duration = get_duration_from_json(video_path, full_info_list, dimension_clip_length)
             if mode == 'long_custom_input':
@@ -76,10 +80,13 @@ class VBenchLong(VBench):
                 split_video_into_clips(video_path, base_output_dir, int(duration), fps=8)
 
         # finally, got floders under videos_path, which contain clips of each video
+        barrier()
         print(f"Splitting videos into clips in {base_output_dir}")
 
 
     def evaluate(self, videos_path, name, prompt_list=[], dimension_list=None, local=False, read_frame=False, mode='vbench_standard', **kwargs):
+        # Ranks may build timestamped names independently; share rank 0's name.
+        name = all_gather(name)[0]
         _dimensions = self.build_full_dimension_list()
         is_dimensional_structure = any(os.path.isdir(os.path.join(videos_path, dim)) for dim in _dimensions)
         kwargs['preprocess_dimension_flag'] = dimension_list
@@ -99,7 +106,11 @@ class VBenchLong(VBench):
         # print('BEFORE BUILDING')
         # loop for build_full_info_json for clips
 
-        cur_full_info_path = self.build_full_info_json(videos_path, name, dimension_list, prompt_list, mode=mode, **kwargs)
+        if get_rank() == 0:
+            cur_full_info_path = self.build_full_info_json(videos_path, name, dimension_list, prompt_list, mode=mode, **kwargs)
+        else:
+            cur_full_info_path = os.path.join(self.output_path, name + '_full_info.json')
+        barrier()
         # print('AFTER BUILDING')
         for dimension in dimension_list:
             try:
@@ -113,8 +124,10 @@ class VBenchLong(VBench):
             results = evaluate_func(cur_full_info_path, self.device, submodules_list, **kwargs)
             results_dict[dimension] = results
         output_name = os.path.join(self.output_path, name+'_eval_results.json')
-        save_json(results_dict, output_name)
-        print(f'Evaluation results saved to {output_name}')
+        if get_rank() == 0:
+            save_json(results_dict, output_name)
+            print(f'Evaluation results saved to {output_name}')
+        barrier()
 
 
     def build_full_info_json(self, videos_path, name, dimension_list, prompt_list=[], special_str='', verbose=False, mode='vbench_standard', **kwargs):
