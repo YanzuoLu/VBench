@@ -86,7 +86,8 @@ def color(model, video_dict, device):
                     'video_path': video_path, 
                     'video_results': cur_success_frame_rate,
                     'cur_success_frame_rate': cur_success_frame_rate,})
-    success_rate = success_frame_count_all / video_count
+    # Synthetic smoke inputs may contain no detectable target object.
+    success_rate = success_frame_count_all / video_count if video_count else 0.0
     return success_rate, video_results
         
 
