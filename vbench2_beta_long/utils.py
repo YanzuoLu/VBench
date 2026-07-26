@@ -197,10 +197,18 @@ def reorganize_clips_results(detailed_results, dimension=None):
 
     prompt_scores = defaultdict(list)
     for video_result in detailed_results:
-        # Extracting the prompt name (long video name) from the path
-        prompt_name = os.path.basename((video_result['video_path'])).split('_')[0]
+        video_path = video_result['video_path']
+        prompt_name = os.path.basename(video_path).split('_')[0]
 
-        long_video_path = video_result['video_path'].split("filtered_clips")[0]
+        # Restore aggregated clip results to source long-video paths in standard long mode.
+        split_clip_marker = f"{os.sep}split_clip{os.sep}"
+        temporal_filter_marker = f"{os.sep}temporal_filtered_cilps{os.sep}"
+        if split_clip_marker in video_path:
+            long_video_path = video_path.split(split_clip_marker, 1)[0]
+        elif temporal_filter_marker in video_path:
+            long_video_path = video_path.split(temporal_filter_marker, 1)[0]
+        else:
+            long_video_path = video_path.split("filtered_clips", 1)[0]
         prompt_name = os.path.join(long_video_path, prompt_name) + ".mp4"
         prompt_scores[prompt_name].append(video_result['video_results'])
 
