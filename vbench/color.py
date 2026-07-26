@@ -102,5 +102,5 @@ def compute_color(json_dir, device, submodules_dict, **kwargs):
         video_results = gather_list_of_dict(video_results)
         success_frame_count = sum([x['cur_success_frame_rate'] for x in video_results])
         frame_count = len(video_results)
-        all_results = success_frame_count / frame_count
+        all_results = success_frame_count / frame_count if frame_count != 0 else 0.0
     return all_results, video_results
