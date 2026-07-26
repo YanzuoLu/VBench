@@ -203,9 +203,13 @@ class VBenchLong(VBench):
             # if kwargs['static_filter_flag'] and 'temporal_flickering' in dimension_list:
             #     videos_path = os.path.join(videos_path, 'temporal_filtered_cilps', 'filtered_videos')
             full_info_list = load_json(self.full_info_dir)
-            video_names = os.listdir(videos_path)
+            # Ignore split/output directories when inferring standard-mode video names.
+            video_names = [
+                name for name in os.listdir(videos_path)
+                if Path(name).suffix.lower() in ['.mp4', '.avi', '.mov']
+            ]
             postfix = Path(video_names[0]).suffix
-            video_clip_folder_names = [name.replace(postfix, '') for name in video_names]
+            video_clip_folder_names = [Path(name).stem for name in video_names]
             for prompt_dict in full_info_list:
                 # if the prompt belongs to any dimension we want to evaluate
                 if set(dimension_list) & set(prompt_dict["dimension"]):
