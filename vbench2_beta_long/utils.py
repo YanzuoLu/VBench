@@ -1,4 +1,5 @@
 import io
+import av
 import os
 import re
 import yaml
@@ -16,7 +17,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-from torchvision.io import write_video
 from decord import VideoReader
 
 from collections import defaultdict
@@ -24,6 +24,25 @@ from vbench.utils import CACHE_DIR, load_video, save_json, load_dimension_info, 
 import logging
 logging.basicConfig(level = logging.INFO,format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
+def write_video(filename, video_array, fps):
+    # torchvision 0.26 removed write_video; encode the same RGB frame tensors through PyAV.
+    if isinstance(video_array, torch.Tensor):
+        video_array = video_array.detach().cpu().numpy()
+
+    with av.open(filename, mode="w") as container:
+        stream = container.add_stream("libx264", rate=fps)
+        stream.width = video_array.shape[2]
+        stream.height = video_array.shape[1]
+        stream.pix_fmt = "yuv420p"
+
+        for image in video_array:
+            frame = av.VideoFrame.from_ndarray(np.asarray(image, dtype=np.uint8), format="rgb24")
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
 
 from scenedetect import open_video, SceneManager, split_video_ffmpeg
 from scenedetect.detectors import ContentDetector
