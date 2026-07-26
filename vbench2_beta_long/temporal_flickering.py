@@ -5,6 +5,7 @@ from easydict import EasyDict as edict
 from collections import defaultdict
 
 from vbench.temporal_flickering import compute_temporal_flickering
+from vbench.distributed import get_rank, barrier
 from vbench.utils import CACHE_DIR, save_json, load_json, load_dimension_info
 from vbench2_beta_long.utils import reorganize_clips_results, build_filtered_info_json
 from vbench2_beta_long.static_filter import static_filter
@@ -20,8 +21,11 @@ def compute_long_temporal_flickering(json_dir, device, submodules_list, **kwargs
     input_path = video_clips_path
 
     if kwargs['static_filter_flag']:
-        filter_static_clips(input_path, output_path,base_video_path)
-        json_dir = build_filtered_info_json(videos_path=output_path, output_path=output_path, name='filtered_temporal_flickering')
+        if get_rank() == 0:
+            filter_static_clips(input_path, output_path,base_video_path)
+            build_filtered_info_json(videos_path=output_path, output_path=output_path, name='filtered_temporal_flickering')
+        barrier()
+        json_dir = os.path.join(output_path, 'filtered_temporal_flickering_info.json')
     
     all_results, detailed_results = compute_temporal_flickering(json_dir, device, submodules_list)
  

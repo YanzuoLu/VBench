@@ -10,6 +10,7 @@ from dreamsim import dreamsim
 from decord import VideoReader
 # torchvision 0.26 removed write_video; this module does not use it.
 from vbench.subject_consistency import compute_subject_consistency, subject_consistency
+from vbench.distributed import get_rank, get_world_size, barrier, distribute_list_to_rank, gather_list_of_dict
 from vbench.utils import load_video, load_dimension_info, dino_transform, dino_transform_Image
 from vbench2_beta_long.utils import reorganize_clips_results, create_video_from_first_frames, fuse_inclip_clip2clip
 from vbench2_beta_long.utils import dreamsim_transform, dreamsim_transform_Image, dinov2_transform, dinov2_transform_Image
@@ -30,17 +31,21 @@ def compute_long_subject_consistency(json_dir, device, submodules_list, **kwargs
     base_path_video = os.path.dirname(list(detailed_results[0].values())[0]).split("split_clip")[0]
     long_video_path = os.path.join(base_path_video, "split_clip")
     new_cat_video_path = os.path.join(base_path_video, 'subject_consistency_cat_firstframes_videos')
-    if not os.path.exists(new_cat_video_path):
-        os.makedirs(new_cat_video_path, exist_ok=True)
-        create_video_from_first_frames(long_video_path, new_cat_video_path, detailed_results)
-    else:
-        print(f"{new_cat_video_path} has already been created, please check the path")
+    if get_rank() == 0:
+        if not os.path.exists(new_cat_video_path):
+            os.makedirs(new_cat_video_path, exist_ok=True)
+            create_video_from_first_frames(long_video_path, new_cat_video_path, detailed_results)
+        else:
+            print(f"{new_cat_video_path} has already been created, please check the path")
+    barrier()
 
-    # get the new video_list
-    video_list = []
-    for video_path in os.listdir(new_cat_video_path):
-        video_list.append(os.path.join(new_cat_video_path, video_path))
-        
+    # get the new video_list, sharded across ranks
+    video_list = sorted(
+        os.path.join(new_cat_video_path, video_path)
+        for video_path in os.listdir(new_cat_video_path)
+    )
+    video_list = distribute_list_to_rank(video_list)
+
     def _compute_subject_consistency(video_list, device, submodules_list, **kwargs):
         if kwargs['sb_clip2clip_feat_extractor'] == 'dino':
             dino_model = torch.hub.load(**submodules_list).to(device)
@@ -68,6 +73,9 @@ def compute_long_subject_consistency(json_dir, device, submodules_list, **kwargs
 
 
     clip2clip_all_results, clip2clip_detailed_results = _compute_subject_consistency(video_list, device, submodules_list, **kwargs)
+    if get_world_size() > 1:
+        clip2clip_detailed_results = gather_list_of_dict(clip2clip_detailed_results)
+        clip2clip_all_results = sum([d['video_results'] for d in clip2clip_detailed_results]) / len(clip2clip_detailed_results)
     dimension = 'subject_consistency'
     fused_all_results, fused_detailed_results = fuse_inclip_clip2clip(inclip_all_results, clip2clip_all_results, inclip_average_scores, clip2clip_detailed_results, dimension, **kwargs)
     # fused_all_results = inclip_all_results * kwargs['w_inclip'] + clip2clip_all_results * kwargs['w_clip2clip']
