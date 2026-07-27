@@ -3,6 +3,7 @@ import av
 import os
 import re
 import yaml
+from vbench.distributed import distribute_list_to_rank
 import cv2
 import json
 import random
@@ -296,11 +297,15 @@ def create_video_from_first_frames(video_paths, new_cat_video_path, detailed_res
     fps = first_video_properties['fps']
 
 
-    # Iterate through each video path and write the first frame to the output video
-    for long_video_dir in sorted(os.listdir(video_paths)):
+    # Iterate through each video path and write the first frame to the output video.
+    # Sharded across ranks; already-written proxy videos are skipped so interrupted
+    # runs resume without regenerating.
+    for long_video_dir in distribute_list_to_rank(sorted(os.listdir(video_paths))):
         if long_video_dir not in dimension_video_list:
             continue
         output_dir = os.path.join(new_cat_video_path, long_video_dir) + ".mp4"
+        if os.path.exists(output_dir):
+            continue
         frames = []
         for video_path in sorted(os.listdir(os.path.join(video_paths, long_video_dir))):
             video_full_path = os.path.join(video_paths, long_video_dir, video_path)
@@ -314,9 +319,11 @@ def create_video_from_first_frames(video_paths, new_cat_video_path, detailed_res
             continue
         if len(frames) > 0:
             frames = torch.stack(frames)  # Stack frames along a new dimension
-            save_segment(frames, fps, output_dir)
+            tmp_output_dir = output_dir[:-len(".mp4")] + ".tmp.mp4"
+            save_segment(frames, fps, tmp_output_dir)
+            os.replace(tmp_output_dir, output_dir)
             print(f"Created new video from first frames: {output_dir}")
-    return 
+    return
 
 
 

@@ -21,11 +21,15 @@ def compute_long_temporal_flickering(json_dir, device, submodules_list, **kwargs
     input_path = video_clips_path
 
     if kwargs['static_filter_flag']:
-        if get_rank() == 0:
-            filter_static_clips(input_path, output_path,base_video_path)
-            build_filtered_info_json(videos_path=output_path, output_path=output_path, name='filtered_temporal_flickering')
-        barrier()
         json_dir = os.path.join(output_path, 'filtered_temporal_flickering_info.json')
+        if os.path.exists(json_dir):
+            print(f"Static filter results already exist, skipping: {json_dir}")
+        else:
+            # All ranks participate; static_filter shards prompts internally.
+            filter_static_clips(input_path, output_path, base_video_path)
+            if get_rank() == 0:
+                build_filtered_info_json(videos_path=output_path, output_path=output_path, name='filtered_temporal_flickering')
+            barrier()
     
     all_results, detailed_results = compute_temporal_flickering(json_dir, device, submodules_list)
  

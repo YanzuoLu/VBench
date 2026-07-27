@@ -31,18 +31,16 @@ def compute_long_subject_consistency(json_dir, device, submodules_list, **kwargs
     base_path_video = os.path.dirname(list(detailed_results[0].values())[0]).split("split_clip")[0]
     long_video_path = os.path.join(base_path_video, "split_clip")
     new_cat_video_path = os.path.join(base_path_video, 'subject_consistency_cat_firstframes_videos')
-    if get_rank() == 0:
-        if not os.path.exists(new_cat_video_path):
-            os.makedirs(new_cat_video_path, exist_ok=True)
-            create_video_from_first_frames(long_video_path, new_cat_video_path, detailed_results)
-        else:
-            print(f"{new_cat_video_path} has already been created, please check the path")
+    os.makedirs(new_cat_video_path, exist_ok=True)
+    # Every rank generates its own shard of proxy videos (resumable per video).
+    create_video_from_first_frames(long_video_path, new_cat_video_path, detailed_results)
     barrier()
 
     # get the new video_list, sharded across ranks
     video_list = sorted(
         os.path.join(new_cat_video_path, video_path)
         for video_path in os.listdir(new_cat_video_path)
+        if video_path.endswith('.mp4') and not video_path.endswith('.tmp.mp4')
     )
     video_list = distribute_list_to_rank(video_list)
 
@@ -69,6 +67,9 @@ def compute_long_subject_consistency(json_dir, device, submodules_list, **kwargs
         elif kwargs['sb_clip2clip_feat_extractor'] == 'dreamsim':
             read_frame = submodules_list['read_frame']
             cache_dir = os.path.expanduser("~/.cache")
+            # DreamSim loads torch.hub repos without skip_validation; neutralize the
+            # GitHub API validation that shared cluster egress IPs cannot afford.
+            torch.hub._validate_not_a_forked_repo = lambda *args, **kwargs: True
             dreamsim_model, _ = dreamsim(pretrained=True, cache_dir=cache_dir)
             all_results, video_results = subject_consistency_dreamsim(dreamsim_model, video_list, device, read_frame)
         return all_results, video_results

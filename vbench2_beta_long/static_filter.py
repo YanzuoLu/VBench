@@ -14,6 +14,7 @@ logging.basicConfig(level = logging.INFO,format = '%(asctime)s - %(levelname)s -
 logger = logging.getLogger(__name__)
 
 from vbench.utils import CACHE_DIR, load_json
+from vbench.distributed import get_rank, all_gather, barrier, distribute_list_to_rank
 from vbench.third_party.RAFT.core.raft import RAFT
 from vbench.third_party.RAFT.core.utils_core.utils import InputPadder
 from vbench2_beta_long.utils import get_prompt_from_filename
@@ -157,19 +158,30 @@ def static_filter(args):
             prompt_dict[prompt] = {"static_count":0, "static_path":[]}
             prompt_list.append(prompt)
 
-    for path in tqdm(paths):
+    # Shard by prompt so the per-prompt "first 5 static clips in path order" selection
+    # matches the serial behavior exactly, then merge the per-rank results.
+    rank_prompt_set = set(distribute_list_to_rank(prompt_list))
+    for path in tqdm(paths, disable=get_rank() > 0):
         name = get_prompt_from_filename(path)
-        if name in prompt_list:
+        if name in rank_prompt_set:
             if prompt_dict[name]["static_count"] < 5 or args.filter_scope != 'temporal_flickering':
                 if static_filter.infer(path):
                     prompt_dict[name]["static_count"] += 1
                     prompt_dict[name]["static_path"].append(path)
 
-    os.makedirs(args.result_path, exist_ok=True)
-    info_file = os.path.join(args.result_path, args.store_name)
-    json.dump(prompt_dict, open(info_file, "w"))
-    logger.info(f"Filtered results info is saved in the '{info_file}' file")
-    check_and_move(args, prompt_dict)
+    rank_results = {prompt: value for prompt, value in prompt_dict.items() if prompt in rank_prompt_set}
+    check_and_move(args, rank_results)
+
+    merged_results = {}
+    for gathered_results in all_gather(rank_results):
+        merged_results.update(gathered_results)
+
+    if get_rank() == 0:
+        os.makedirs(args.result_path, exist_ok=True)
+        info_file = os.path.join(args.result_path, args.store_name)
+        json.dump(merged_results, open(info_file, "w"))
+        logger.info(f"Filtered results info is saved in the '{info_file}' file")
+    barrier()
 
 def parse_args():
     parser = argparse.ArgumentParser(description='static_filter', formatter_class=argparse.RawTextHelpFormatter)
