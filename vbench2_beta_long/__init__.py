@@ -70,6 +70,9 @@ class VBenchLong(VBench):
             duration = get_duration_from_json(video_path, full_info_list, dimension_clip_length)
             if mode == 'long_custom_input':
                 duration = 2
+            if duration is None:
+                print(f"Skipping non-benchmark video (prompt not in full info): {video_path}")
+                continue
 
             if video_path in split_scene_video_path:
                 video_name = os.path.splitext(video_file)[0]
