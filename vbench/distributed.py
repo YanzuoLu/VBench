@@ -1,6 +1,7 @@
 import os
 import torch
 import pickle
+from datetime import timedelta
 
 import torch.distributed
 
@@ -34,7 +35,11 @@ def dist_init():
         os.environ['WORLD_SIZE'] = '1'
 
     backend = 'gloo' if os.name == 'nt' else 'nccl'
-    torch.distributed.init_process_group(backend=backend, init_method='env://')
+    # Long-video evaluation has rank-0-only phases (first-frame proxy videos, static
+    # filtering) that keep other ranks waiting in barriers far beyond the 10-minute
+    # NCCL default before the watchdog aborts the job.
+    timeout = timedelta(minutes=int(os.environ.get('VBENCH_DIST_TIMEOUT_MINUTES', '360')))
+    torch.distributed.init_process_group(backend=backend, init_method='env://', timeout=timeout)
     torch.cuda.set_device(int(os.environ.get('LOCAL_RANK', '0')))
 
 
