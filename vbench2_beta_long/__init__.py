@@ -1,6 +1,7 @@
 import os
 import re
 import importlib
+import multiprocessing
 from itertools import chain
 from pathlib import Path
 from vbench.utils import get_prompt_from_filename, init_submodules, save_json, load_json
@@ -62,6 +63,7 @@ class VBenchLong(VBench):
         base_output_dir = os.path.join(videos_path, "split_clip")
         os.makedirs(base_output_dir, exist_ok=True)
 
+        split_tasks = []
         for video_file in rank_video_files:
             video_path = os.path.join(videos_path, video_file)
 
@@ -77,7 +79,16 @@ class VBenchLong(VBench):
                     split_video_into_clips(video_scene_path, base_output_dir, int(duration), fps=8)
 
             else:
-                split_video_into_clips(video_path, base_output_dir, int(duration), fps=8)
+                split_tasks.append((video_path, base_output_dir, int(duration)))
+
+        split_workers = min(int(os.environ.get("VBENCH_LONG_SPLIT_WORKERS", "1")), max(len(split_tasks), 1))
+        if split_workers > 1:
+            # spawn (not fork): CUDA is already initialized inside torchrun ranks.
+            with multiprocessing.get_context("spawn").Pool(split_workers) as split_pool:
+                split_pool.starmap(split_video_into_clips, split_tasks)
+        else:
+            for split_task in split_tasks:
+                split_video_into_clips(*split_task)
 
         # finally, got floders under videos_path, which contain clips of each video
         barrier()
