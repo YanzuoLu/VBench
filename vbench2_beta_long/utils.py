@@ -159,14 +159,27 @@ def split_video_into_clips(video_path, output_path, duration=2, fps=8):
         return
 
     fps = first_video_properties['fps']
+    segment_frame_count = fps * duration  # Calculate the number of frames per segment
+
+    video_name = os.path.basename(video_path).split('.mp4')[0]
+    output_dir = os.path.join(output_path, video_name)
+
+    # Skip videos whose clip folder is already complete, so interrupted runs resume without re-splitting.
+    try:
+        num_frames = len(VideoReader(video_path, num_threads=1))
+    except Exception:
+        num_frames = None
+    if num_frames and os.path.isdir(output_dir):
+        if num_frames < segment_frame_count:
+            expected_clips = 1
+        else:
+            expected_clips = num_frames // segment_frame_count + (1 if num_frames % segment_frame_count else 0)
+        if len([f for f in os.listdir(output_dir) if f.endswith('.mp4')]) == expected_clips:
+            print(f"Clips already complete, skipping: {output_dir}")
+            return output_dir
 
     # Load video frames
     frames = load_video(video_path, return_tensor=True)
-    segment_frame_count = fps * duration  # Calculate the number of frames per segment
-
-    
-    video_name = os.path.basename(video_path).split('.mp4')[0]
-    output_dir = os.path.join(output_path, video_name)
     os.makedirs(output_dir, exist_ok=True)
 
     if len(frames) < segment_frame_count:
