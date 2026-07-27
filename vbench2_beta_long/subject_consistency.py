@@ -56,6 +56,10 @@ def compute_long_subject_consistency(json_dir, device, submodules_list, **kwargs
             dinov2_dict = {
                 'repo_or_dir': f'facebookresearch/dinov2',
                 'model': 'dinov2_vitb14',
+                # Shared cluster egress IPs exhaust the anonymous GitHub API quota that
+                # torch.hub repo validation uses; the actual archive download is unaffected.
+                'skip_validation': True,
+                'trust_repo': True,
                 }
             dinov2_model = torch.hub.load(**dinov2_dict).to(device)
             read_frame = submodules_list['read_frame']
