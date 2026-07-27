@@ -7,7 +7,8 @@ def check_torch_version():
     try:
         import torch
         if not torch.cuda.is_available():
-            raise RuntimeError("\033[91mCUDA is not available. Please install a CUDA 11- or 12.1-enabled PyTorch version.\033[0m")
+            print("\033[93mCUDA is not available at build time (e.g. CPU-only build node); skipping the CUDA version check.\033[0m")
+            return
 
         cuda_version = torch.version.cuda
         print(cuda_version)
